@@ -1,0 +1,33 @@
+{
+  "name": "bidder-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:api": "pnpm --filter @repo/db run build && dotenv -e .env -- pnpm --filter api run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "pnpm --filter @repo/db exec prisma generate",
+    "db:migrate": "dotenv -e packages/db/.env -- pnpm --filter @repo/db exec prisma migrate dev",
+    "db:push": "dotenv -e packages/db/.env -- pnpm --filter @repo/db exec prisma db push",
+    "db:studio": "dotenv -e packages/db/.env -- pnpm --filter @repo/db exec prisma studio",
+    "prepare": "husky",
+    "commit": "commitlint --edit"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^7.4.2",
+    "@commitlint/cli": "^19.4.0",
+    "@commitlint/config-conventional": "^19.4.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.5",
+    "turbo": "^2.3.0"
+  },
+  "packageManager": "pnpm@9.14.2",
+  "engines": {
+    "node": ">=20"
+  }
+}
