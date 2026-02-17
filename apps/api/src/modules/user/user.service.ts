@@ -188,4 +188,92 @@ export class UserService {
       orderBy: { createdAt: "desc" },
     });
   }
+
+  /** Get all bidders for admin */
+  async getBidders(options: {
+    page: number;
+    limit: number;
+    status?: string;
+    kycStatus?: string;
+    search?: string;
+  }) {
+    const { page, limit, status, kycStatus, search } = options;
+    const skip = (page - 1) * limit;
+
+    const where: any = {
+      role: "BIDDER"
+    };
+
+    if (status) {
+      where.emailVerifiedAt = status === "active" ? { not: null } : 
+                             status === "inactive" ? null : undefined;
+      where.mobileVerifiedAt = status === "active" ? { not: null } : 
+                              status === "inactive" ? null : undefined;
+      where.reservationProofVerifiedAt = status === "active" ? { not: null } : 
+                                        status === "inactive" ? null : undefined;
+    }
+
+    if (kycStatus) {
+      where.kycStatus = kycStatus;
+    }
+
+    if (search) {
+      where.OR = [
+        { email: { contains: search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
+        { fullName: { contains: search, mode: "insensitive" } },
+        { mobile: { contains: search, mode: "insensitive" } }
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      this.prisma.client.user.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          kycDocuments: {
+            select: {
+              id: true,
+              documentType: true,
+              fileUrl: true,
+              status: true,
+              rejectionReason: true,
+              reviewedAt: true
+            }
+          },
+          _count: {
+            select: {
+              bids: true
+            }
+          }
+        },
+        orderBy: { createdAt: "desc" }
+      }),
+      this.prisma.client.user.count({ where })
+    ]);
+
+    const transformedUsers = users.map(user => {
+      const { passwordHash: _, ...userWithoutPassword } = user;
+      const isActive = this.isAccountActive(userWithoutPassword);
+      const canBid = this.canBid(userWithoutPassword);
+      
+      return {
+        ...userWithoutPassword,
+        status: isActive ? "active" : "inactive",
+        canBid,
+        totalBids: user._count.bids
+      };
+    });
+
+    return {
+      data: transformedUsers,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  }
 }

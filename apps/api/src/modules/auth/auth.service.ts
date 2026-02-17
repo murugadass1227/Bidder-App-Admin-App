@@ -77,11 +77,52 @@ export class AuthService {
     });
   }
 
+  async blacklistAccessToken(jti: string, expiresAt: Date) {
+    // We can reuse the same table for access tokens
+    await this.prisma.client.refreshTokenBlacklist.create({
+      data: { jti, expiresAt },
+    });
+  }
+
   async isBlacklisted(jti: string): Promise<boolean> {
     const entry = await this.prisma.client.refreshTokenBlacklist.findUnique({
       where: { jti },
     });
     return !!entry;
+  }
+
+  async logout(userId: string, jti?: string, exp?: number) {
+    // Blacklist the access token if we have its jti and exp
+    if (jti && exp) {
+      const expiresAt = new Date(exp * 1000);
+      await this.blacklistAccessToken(jti, expiresAt);
+    }
+    
+    // Clean up expired tokens periodically
+    this.cleanupExpiredTokens();
+    
+    // In a real application, you might also:
+    // - Log the logout event
+    // - Update user's last seen timestamp
+    // - Clear any active sessions
+    
+    return { message: "Logged out successfully" };
+  }
+
+  private async cleanupExpiredTokens() {
+    // Clean up expired blacklisted tokens (run in background)
+    try {
+      await this.prisma.client.refreshTokenBlacklist.deleteMany({
+        where: {
+          expiresAt: {
+            lt: new Date(),
+          },
+        },
+      });
+    } catch (error) {
+      // Log error but don't fail the logout process
+      console.error('Failed to cleanup expired tokens:', error);
+    }
   }
 
   private buildTokens(sub: string, email: string, role: string) {

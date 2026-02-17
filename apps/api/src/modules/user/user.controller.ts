@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Post, UseGuards, Query } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { UpdateBidderProfileDto } from "./dto/update-bidder-profile.dto";
 import { UploadReservationProofDto } from "./dto/reservation-proof.dto";
@@ -66,5 +68,24 @@ export class UserController {
   @Get("me/invoices")
   async myInvoices(@CurrentUser("sub") userId: string): Promise<unknown[]> {
     return this.userService.findInvoices(userId);
+  }
+
+  @Get("admin/bidders")
+  @UseGuards(RolesGuard)
+  @Roles("ADMIN")
+  async getBidders(
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+    @Query("status") status?: string,
+    @Query("kycStatus") kycStatus?: string,
+    @Query("search") search?: string
+  ) {
+    return this.userService.getBidders({
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      status,
+      kycStatus,
+      search
+    });
   }
 }

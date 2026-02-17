@@ -65,10 +65,21 @@ export class AuthController {
     return this.authService.refresh(sub, jti);
   }
 
-  @Public()
   @Post("logout")
-  @UseGuards(AuthGuard("jwt-refresh"))
+  @UseGuards(AuthGuard("jwt"))
   async logout(
+    @CurrentUser("sub") userId?: string,
+    @CurrentUser("jti") jti?: string,
+    @CurrentUser("exp") exp?: number
+  ) {
+    if (!userId) throw new Error("Unauthorized");
+    return this.authService.logout(userId, jti, exp);
+  }
+
+  @Public()
+  @Post("logout-refresh")
+  @UseGuards(AuthGuard("jwt-refresh"))
+  async logoutRefresh(
     @Body() dto: RefreshTokenDto,
     @CurrentUser("sub") sub?: string,
     @CurrentUser("jti") jti?: string,
