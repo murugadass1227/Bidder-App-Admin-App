@@ -6,24 +6,25 @@ import { getApiErrorMessage } from "@/lib/utils";
 import { useLogin } from "../hooks";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("");
+  const [emailOrMobile, setEmailOrMobile] = useState("");
   const [password, setPassword] = useState("");
   const login = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login.mutate({ email, password });
+    login.mutate({ emailOrMobile: emailOrMobile.trim(), password });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm">
       <Input
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        label="Email or mobile number"
+        type="text"
+        placeholder="you@example.com or +1234567890"
+        value={emailOrMobile}
+        onChange={(e) => setEmailOrMobile(e.target.value)}
         required
-        autoComplete="email"
+        autoComplete="username"
       />
       <PasswordInput
         label="Password"

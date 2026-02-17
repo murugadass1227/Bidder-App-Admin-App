@@ -2,12 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import * as auctionApi from "./api";
-import type { AuctionStatus } from "./types";
+import type { AuctionFilters } from "./api";
 
-export function useAuctions(status?: AuctionStatus) {
+export function useAuctions(filters: AuctionFilters = {}) {
   return useQuery({
-    queryKey: ["auctions", status],
-    queryFn: () => auctionApi.getAuctions(status),
+    queryKey: ["auctions", filters],
+    queryFn: () => auctionApi.getAuctions(filters),
   });
 }
 

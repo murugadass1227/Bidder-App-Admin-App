@@ -1,8 +1,12 @@
 import { api } from "@/lib/axios";
 import type { Bid } from "./types";
 
-export async function placeBid(auctionId: string, amount: number) {
-  const res = await api.post<Bid>("/bids", { auctionId, amount });
+export async function placeBid(
+  auctionId: string,
+  amount: number,
+  maxBid?: number
+) {
+  const res = await api.post<Bid>("/bids", { auctionId, amount, maxBid });
   return res.data;
 }
 

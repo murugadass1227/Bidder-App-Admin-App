@@ -8,6 +8,7 @@ import { UserService } from "../user/user.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { JwtPayload } from "./dto/jwt-payload.interface";
+import { Role } from "@repo/db";
 
 @Injectable()
 export class AuthService {
@@ -26,16 +27,34 @@ export class AuthService {
     return rest;
   }
 
+  /** Validate by email or mobile + password (for bidder login) */
+  async validateUserByEmailOrMobile(emailOrMobile: string, password: string) {
+    const user = await this.userService.findByEmailOrMobile(emailOrMobile);
+    if (!user) return null;
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return null;
+    const { passwordHash: _, ...rest } = user;
+    return rest;
+  }
+
   async login(dto: LoginDto) {
-    const user = await this.validateUser(dto.email, dto.password);
-    if (!user) throw new UnauthorizedException("Invalid email or password");
-    return this.buildTokens(user.id, user.email, user.role);
+    const user = await this.validateUserByEmailOrMobile(dto.emailOrMobile, dto.password);
+    if (!user) throw new UnauthorizedException("Invalid email/mobile or password");
+    const tokens = this.buildTokens(user.id, user.email, user.role);
+    const isBidder = user.role === Role.BIDDER;
+    const requiresVerification =
+      isBidder && !this.userService.isAccountActive(user as Parameters<typeof this.userService.isAccountActive>[0]);
+    return { ...tokens, requiresVerification: !!requiresVerification };
   }
 
   async register(dto: RegisterDto) {
     const user = await this.userService.create(dto);
     const { passwordHash: _, ...rest } = user;
-    return this.buildTokens(rest.id, rest.email, rest.role);
+    const tokens = this.buildTokens(rest.id, rest.email, rest.role);
+    const isBidder = rest.role === Role.BIDDER;
+    const requiresVerification =
+      isBidder && !this.userService.isAccountActive(user as Parameters<typeof this.userService.isAccountActive>[0]);
+    return { ...tokens, requiresVerification: !!requiresVerification };
   }
 
   async refresh(userId: string, jti?: string) {
@@ -44,8 +63,12 @@ export class AuthService {
     }
     const user = await this.userService.findById(userId);
     if (!user) throw new UnauthorizedException("User not found");
-    const { passwordHash: _, ...rest } = user;
-    return this.buildTokens(rest.id, rest.email, rest.role);
+    const { passwordHash: _, kycDocuments: __, ...rest } = user;
+    const tokens = this.buildTokens(rest.id, rest.email, rest.role);
+    const isBidder = rest.role === Role.BIDDER;
+    const requiresVerification =
+      isBidder && !this.userService.isAccountActive(rest as Parameters<typeof this.userService.isAccountActive>[0]);
+    return { ...tokens, requiresVerification: !!requiresVerification };
   }
 
   async blacklistRefreshToken(jti: string, expiresAt: Date) {

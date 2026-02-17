@@ -2,9 +2,15 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateAuctionDto } from "./dto/create-auction.dto";
 import { UpdateAuctionDto } from "./dto/update-auction.dto";
+import { QueryAuctionsDto } from "./dto/query-auctions.dto";
 import { AuctionStatus, Prisma } from "@repo/db";
 import type { AuctionWithCreator, AuctionWithCreatorAndBids } from "../../types/prisma";
 import type { Auction } from "@repo/db";
+
+function maskVin(vin: string | null): string | null {
+  if (!vin || vin.length < 4) return vin;
+  return vin.slice(0, 2) + "***" + vin.slice(-2);
+}
 
 @Injectable()
 export class AuctionService {
@@ -26,29 +32,49 @@ export class AuctionService {
     });
   }
 
-  async findAll(status?: AuctionStatus): Promise<AuctionWithCreator[]> {
-    const where = status ? { status } : {};
+  async findAll(query: QueryAuctionsDto = {}): Promise<AuctionWithCreator[]> {
+    const where: Prisma.AuctionWhereInput = {};
+    if (query.status) where.status = query.status;
+    if (query.make) where.make = { contains: query.make };
+    if (query.model) where.model = { contains: query.model };
+    if (query.year) where.year = query.year;
+    if (query.yard) where.yardName = { contains: query.yard };
+    if (query.location) where.yardLocation = { contains: query.location };
+    if (query.damageType) where.damageType = { contains: query.damageType };
+
     return this.prisma.client.auction.findMany({
       where,
-      include: { creator: { select: { id: true, email: true, name: true } } },
+      include: {
+        creator: { select: { id: true, email: true, name: true } },
+        yard: true,
+      },
       orderBy: { createdAt: "desc" },
     });
   }
 
-  async findOne(id: string): Promise<AuctionWithCreatorAndBids> {
+  /** Get lot detail; mask VIN/engine for bidders unless permitted (admin sees full) */
+  async findOne(id: string, options?: { maskSensitive?: boolean }): Promise<AuctionWithCreatorAndBids> {
     const auction = await this.prisma.client.auction.findUnique({
       where: { id },
       include: {
         creator: { select: { id: true, email: true, name: true } },
+        yard: true,
         bids: {
           orderBy: { createdAt: "desc" },
-          take: 10,
+          take: 50,
           include: { user: { select: { id: true, email: true, name: true } } },
         },
       },
     });
     if (!auction) throw new NotFoundException("Auction not found");
-    return auction;
+
+    if (options?.maskSensitive) {
+      (auction as { vin?: string | null; engineNumber?: string | null }).vin = maskVin(auction.vin);
+      (auction as { engineNumber?: string | null }).engineNumber = auction.engineNumber
+        ? maskVin(auction.engineNumber)
+        : null;
+    }
+    return auction as AuctionWithCreatorAndBids;
   }
 
   async update(id: string, dto: UpdateAuctionDto): Promise<AuctionWithCreator> {

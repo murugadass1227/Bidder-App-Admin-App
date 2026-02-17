@@ -30,3 +30,42 @@ export async function getMe() {
   const res = await api.get("/users/me");
   return res.data;
 }
+
+export async function sendVerifyEmail() {
+  const res = await api.post<{ sent: boolean; expiresInMinutes: number }>("/auth/send-verify-email");
+  return res.data;
+}
+
+export async function sendVerifyMobile() {
+  const res = await api.post<{ sent: boolean; expiresInMinutes: number }>("/auth/send-verify-mobile");
+  return res.data;
+}
+
+export async function verifyEmail(code: string) {
+  const res = await api.post<{ verified: boolean }>("/auth/verify-email", { code });
+  return res.data;
+}
+
+export async function verifyMobile(code: string) {
+  const res = await api.post<{ verified: boolean }>("/auth/verify-mobile", { code });
+  return res.data;
+}
+
+export async function updateProfile(data: {
+  physicalAddress?: string;
+  preferredPaymentMethod?: string;
+  companyDetails?: string;
+}) {
+  const res = await api.patch("/users/me", data);
+  return res.data;
+}
+
+export async function uploadReservationProof(fileUrl: string) {
+  const res = await api.post("/users/me/reservation-proof", { fileUrl });
+  return res.data;
+}
+
+export async function submitKycDocument(documentType: "ID_COPY" | "BUSINESS_REGISTRATION", fileUrl: string) {
+  const res = await api.post("/users/me/kyc", { documentType, fileUrl });
+  return res.data;
+}
