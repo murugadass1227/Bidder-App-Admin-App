@@ -17,19 +17,35 @@ export function useLogin() {
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
       }
-      setUser(data.user);
-      router.push("/dashboard");
+      const user = { ...data.user, requiresVerification: data.requiresVerification };
+      setUser(user);
+      if (data.requiresVerification) {
+        router.push("/onboarding");
+      } else {
+        router.push("/dashboard");
+      }
     },
   });
 }
 
 export function useRegister() {
   const router = useRouter();
+  const setUser = useAuthStore((s) => s.setUser);
 
   return useMutation({
     mutationFn: (data: RegisterInput) => authApi.register(data),
-    onSuccess: () => {
-      router.push("/login?registered=1");
+    onSuccess: (data) => {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
+      }
+      const user = { ...data.user, requiresVerification: data.requiresVerification };
+      setUser(user);
+      if (data.requiresVerification) {
+        router.push("/onboarding");
+      } else {
+        router.push("/login?registered=1");
+      }
     },
   });
 }

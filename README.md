@@ -15,6 +15,17 @@ packages/
   config/         # Shared TS + ESLint config
 ```
 
+## User roles
+
+| Role | Capabilities |
+|------|--------------|
+| **Bidder** | Register, browse lots, bid, pay (if required), view won lots, download documents. |
+| **Admin** | Create lots, upload media/docs, create/start/end auctions, manage bidders, approvals, reporting. |
+| **Salvage/Yard Operator** *(optional)* | Update location, release, pickup status. |
+| **Insurer/Assessor** *(optional)* | Submit lots, approvals, reserve price. |
+
+Self-registration is allowed only for **Bidder** and **Admin**. Optional roles (Salvage/Yard Operator, Insurer/Assessor) are assigned by an admin.
+
 ## Prerequisites
 
 - **Node.js** ≥ 20
@@ -66,6 +77,8 @@ pnpm db:migrate
 pnpm dev
 ```
 
+If you change API DTOs (e.g. register/login payloads), restart `pnpm dev` so the API rebuilds; otherwise validation may reject new properties.
+
 - **Bidder**: http://localhost:3000  
 - **Admin**: http://localhost:3001  
 - **API**: http://localhost:4000/api/v1  
@@ -107,10 +120,11 @@ Or use the included `docker-compose.yml` (PostgreSQL) if you prefer – update `
 
 ## API Overview
 
-- **Auth**: `POST /api/v1/auth/login`, `POST /api/v1/auth/register`, `POST /api/v1/auth/refresh`
-- **Users**: `GET /api/v1/users/me` (JWT required)
-- **Auctions**: `GET /api/v1/auctions`, `GET /api/v1/auctions/:id` (public); `POST/PATCH/DELETE` (Admin only)
-- **Bids**: `POST /api/v1/bids` (place bid), `GET /api/v1/bids/auction/:auctionId`, `GET /api/v1/bids/my`
+- **Auth**: `POST /api/v1/auth/login`, `POST /api/v1/auth/register`, `POST /api/v1/auth/refresh`, verify email/mobile
+- **Users**: `GET /api/v1/users/me`, `PATCH /api/v1/users/me`, reservation proof, KYC, `GET /api/v1/users/me/won`, `GET /api/v1/users/me/invoices`
+- **Auctions (lots)**: `GET /api/v1/auctions` (query: status, make, model, year, yard, damageType), `GET /api/v1/auctions/:id` (public; VIN/engine masked for bidders); Admin: `POST/PATCH/DELETE`
+- **Bids**: `POST /api/v1/bids` (place bid, optional maxBid), `GET /api/v1/bids/auction/:auctionId` (history with anonymized bidder ID), `GET /api/v1/bids/my`
+- **Watchlist**: `GET/POST /api/v1/watchlist`, `DELETE /api/v1/watchlist/:auctionId`
 - **WebSocket**: namespace `/bidding` – events: `bid`, `join`, `leave`; server emits `bid:update`
 
 ## Creating an admin user

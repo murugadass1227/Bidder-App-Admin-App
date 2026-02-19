@@ -19,7 +19,7 @@ export function getApiErrorMessage(error: unknown): string {
   if (msg !== undefined && msg !== null) {
     return Array.isArray(msg) ? msg.join(" ") : String(msg);
   }
-  if (ax.response?.status === 409) return "Email already registered.";
+  if (ax.response?.status === 409) return "Email or mobile number already registered.";
   if (ax.response?.status === 400) return "Invalid input. Check email and password (min 6 characters).";
   if (ax.code === "ERR_NETWORK" || (error as Error)?.message?.includes("Connection refused")) {
     return "Cannot reach the server. Make sure the API is running (pnpm dev).";

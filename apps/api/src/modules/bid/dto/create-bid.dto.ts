@@ -1,4 +1,4 @@
-import { IsString, IsNumber, Min } from "class-validator";
+import { IsString, IsNumber, Min, IsOptional } from "class-validator";
 import { Type } from "class-transformer";
 
 export class CreateBidDto {
@@ -9,4 +9,11 @@ export class CreateBidDto {
   @Min(0.01)
   @Type(() => Number)
   amount!: number;
+
+  /** Optional max bid for auto-bid (server may place bids up to this) */
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  @Type(() => Number)
+  maxBid?: number;
 }

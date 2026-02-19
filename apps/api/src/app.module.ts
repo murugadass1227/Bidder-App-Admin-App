@@ -8,6 +8,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/user/user.module";
 import { AuctionModule } from "./modules/auction/auction.module";
 import { BidModule } from "./modules/bid/bid.module";
+import { WatchlistModule } from "./modules/watchlist/watchlist.module";
 import { BiddingGatewayModule } from "./modules/websocket/bidding.module";
 import { ThrottlerGuard } from "@nestjs/throttler";
 import { AllExceptionsFilter } from "./common/filters/http-exception.filter";
@@ -32,6 +33,7 @@ import { HealthController } from "./health.controller";
     UserModule,
     AuctionModule,
     BidModule,
+    WatchlistModule,
     BiddingGatewayModule,
   ],
   controllers: [HealthController],

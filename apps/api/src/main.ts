@@ -19,8 +19,8 @@ async function bootstrap() {
   app.setGlobalPrefix("api/v1");
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
+      whitelist: true, // strip properties without validation decorators
+      forbidNonWhitelisted: false, // allow extra properties so register (fullName, mobile, compliance) works after frontend updates
       transform: true,
       transformOptions: { enableImplicitConversion: true },
     })

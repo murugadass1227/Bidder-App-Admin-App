@@ -7,6 +7,7 @@
     "dev": "turbo run dev",
     "dev:api": "pnpm --filter @repo/db run build && dotenv -e .env -- pnpm --filter api run dev",
     "lint": "turbo run lint",
+    "test": "echo 'No tests specified yet' && exit 0",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean && rm -rf node_modules",
@@ -14,14 +15,14 @@
     "db:migrate": "dotenv -e packages/db/.env -- pnpm --filter @repo/db exec prisma migrate dev",
     "db:push": "dotenv -e packages/db/.env -- pnpm --filter @repo/db exec prisma db push",
     "db:studio": "dotenv -e packages/db/.env -- pnpm --filter @repo/db exec prisma studio",
-    "prepare": "husky",
+    "prepare": "npx husky install",
     "commit": "commitlint --edit"
   },
   "devDependencies": {
-    "dotenv-cli": "^7.4.2",
     "@commitlint/cli": "^19.4.0",
     "@commitlint/config-conventional": "^19.4.0",
-    "husky": "^9.0.11",
+    "dotenv-cli": "^7.4.2",
+    "husky": "^9.1.7",
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.5",
     "turbo": "^2.3.0"

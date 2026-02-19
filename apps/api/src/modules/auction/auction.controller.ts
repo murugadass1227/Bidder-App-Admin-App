@@ -12,12 +12,12 @@ import {
 import { AuctionService } from "./auction.service";
 import { CreateAuctionDto } from "./dto/create-auction.dto";
 import { UpdateAuctionDto } from "./dto/update-auction.dto";
+import { QueryAuctionsDto } from "./dto/query-auctions.dto";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Role } from "@repo/db";
-import { AuctionStatus } from "@repo/db";
 import { Public } from "../../common/decorators/public.decorator";
 import type { Auction } from "@repo/db";
 import type { AuctionWithCreator, AuctionWithCreatorAndBids } from "../../types/prisma";
@@ -28,14 +28,19 @@ export class AuctionController {
 
   @Public()
   @Get()
-  async findAll(@Query("status") status?: AuctionStatus): Promise<AuctionWithCreator[]> {
-    return this.auctionService.findAll(status);
+  async findAll(@Query() query: QueryAuctionsDto): Promise<AuctionWithCreator[]> {
+    return this.auctionService.findAll(query);
   }
 
   @Public()
   @Get(":id")
-  async findOne(@Param("id") id: string): Promise<AuctionWithCreatorAndBids> {
-    return this.auctionService.findOne(id);
+  async findOne(
+    @Param("id") id: string,
+    @Query("maskSensitive") maskSensitive?: string,
+    @CurrentUser("role") role?: Role
+  ): Promise<AuctionWithCreatorAndBids> {
+    const isAdmin = role === Role.ADMIN;
+    return this.auctionService.findOne(id, { maskSensitive: isAdmin ? false : true });
   }
 
   @Post()
