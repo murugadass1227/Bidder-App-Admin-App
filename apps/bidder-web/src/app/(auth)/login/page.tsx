@@ -11,7 +11,7 @@ export default async function LoginPage({
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <h1 className="text-2xl font-bold mb-6">Log in</h1>
+      {/* <h1 className="text-2xl font-bold mb-6">Log in</h1> */}
       {showRegisteredMessage && (
         <p className="mb-4 text-sm text-green-600">Registration successful. Please log in.</p>
       )}

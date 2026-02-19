@@ -9,8 +9,6 @@ import {
   Users, 
   TrendingUp, 
   AlertTriangle, 
-  Clock,
-  Eye,
   Activity,
   Loader2
 } from 'lucide-react';
@@ -45,11 +43,9 @@ export default function AdminDashboardPage() {
     try {
       setLoading(true);
       setError(null);
-      
-      // Fetch users count
+
       const usersResponse = await apiService.getBidders({ limit: 1 });
-      
-      // Mock data for other stats (you can add more API calls later)
+
       const mockStats: DashboardStats = {
         totalLots: 1234,
         activeAuctions: 23,
@@ -86,9 +82,9 @@ export default function AdminDashboardPage() {
             timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
             user: 'System',
           },
-        ]
+        ],
       };
-      
+
       setStats(mockStats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch dashboard stats');
@@ -102,9 +98,7 @@ export default function AdminDashboardPage() {
   }, []);
 
   const formatTimestamp = (date: Date) => {
-    // Ensure consistent rendering between server and client
     if (typeof window === 'undefined') {
-      // On the server, just return a simple string or a fixed format
       return date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
     }
 
@@ -120,54 +114,27 @@ export default function AdminDashboardPage() {
   };
 
   const statsData = [
-    {
-      title: 'Total Lots',
-      value: stats?.totalLots?.toLocaleString() ?? '0',
-      change: '+12.3%',
-      changeType: 'positive' as const,
-      icon: Car,
-    },
-    {
-      title: 'Active Auctions',
-      value: stats?.activeAuctions?.toLocaleString() ?? '0',
-      change: '+5.2%',
-      changeType: 'positive' as const,
-      icon: Gavel,
-    },
-    {
-      title: 'Total Bids',
-      value: stats?.totalBids?.toLocaleString() ?? '0',
-      change: '+18.7%',
-      changeType: 'positive' as const,
-      icon: TrendingUp,
-    },
-    {
-      title: 'Registered Users',
-      value: stats?.totalUsers?.toLocaleString() ?? '0',
-      change: '+9.1%',
-      changeType: 'positive' as const,
-      icon: Users,
-    },
+    { title: 'Total Lots', value: stats?.totalLots?.toLocaleString() ?? '0', change: '+12.3%', icon: Car },
+    { title: 'Active Auctions', value: stats?.activeAuctions?.toLocaleString() ?? '0', change: '+5.2%', icon: Gavel },
+    { title: 'Total Bids', value: stats?.totalBids?.toLocaleString() ?? '0', change: '+18.7%', icon: TrendingUp },
+    { title: 'Registered Users', value: stats?.totalUsers?.toLocaleString() ?? '0', change: '+9.1%', icon: Users },
   ];
 
   const alerts = [
     {
       id: 1,
-      type: 'warning' as const,
       title: 'Unsold Lots Alert',
       description: `${stats?.unsoldLots90Days || 0} lots have been unsold for over 90 days`,
       action: 'Review Lots',
     },
     {
       id: 2,
-      type: 'info' as const,
       title: 'Pending Approvals',
       description: `${stats?.pendingApprovals || 0} reserve price approvals pending`,
       action: 'Review Approvals',
     },
     {
       id: 3,
-      type: 'error' as const,
       title: 'Suspicious Activity',
       description: 'Unusual bidding pattern detected on Auction #1234',
       action: 'Investigate',
@@ -177,18 +144,18 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-600">Loading dashboard...</span>
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <span className="ml-3 text-gray-600 font-medium">Loading dashboard...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="border-red-200 bg-red-50">
+      <Card className="border-red-200 bg-red-50 shadow-sm">
         <CardContent className="pt-6">
-          <p className="text-red-800">{error}</p>
-          <Button variant="outline" size="sm" onClick={fetchDashboardStats} className="mt-2">
+          <p className="text-red-800 font-medium">{error}</p>
+          <Button variant="outline" size="sm" onClick={fetchDashboardStats} className="mt-3">
             Retry
           </Button>
         </CardContent>
@@ -197,30 +164,33 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
+
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Botswana Insurance Company (BIC)
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          BIC Auction Dashboard
         </h1>
-        <p className="text-gray-600 mt-2 text-sm sm:text-base">
-          Auction Management Dashboard
+        <p className="text-gray-500 text-sm">
+          Monitor auctions, lots, bids and user activity in real time
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {statsData.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className="h-4 w-4 text-gray-600" />
+          <Card key={stat.title} className="shadow-sm hover:shadow-md transition rounded-2xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-semibold text-gray-600">
+                {stat.title}
+              </CardTitle>
+              <div className="p-2 rounded-xl bg-blue-50">
+                <stat.icon className="h-5 w-5 text-blue-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-xl sm:text-2xl font-bold">{stat.value}</div>
-              <p className={`text-xs ${
-                stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <div className="text-2xl font-bold tracking-tight">{stat.value}</div>
+              <p className="text-xs text-green-600 font-medium mt-1">
                 {stat.change} from last month
               </p>
             </CardContent>
@@ -228,111 +198,94 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Recent Activity */}
-        <Card className="lg:col-span-2">
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        {/* Activity */}
+        <Card className="lg:col-span-2 rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Activity className="h-5 w-5" />
+              <Activity className="h-5 w-5 text-blue-600" />
               Recent Activity
             </CardTitle>
-            <CardDescription className="text-sm">
-              Latest actions and events in the system
-            </CardDescription>
+            <CardDescription>Latest system events</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3 sm:space-y-4">
-              {stats?.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="h-2 w-2 bg-blue-600 rounded-full mt-2"></div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{activity.description}</p>
-                    <p className="text-xs text-gray-500">
-                      {formatTimestamp(activity.timestamp)} • {activity.user}
-                    </p>
-                  </div>
+
+          <CardContent className="space-y-4">
+            {stats?.recentActivity.map((activity) => (
+              <div key={activity.id} className="flex gap-3 items-start">
+                <div className="mt-2 h-2 w-2 rounded-full bg-blue-600"></div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-900">{activity.description}</p>
+                  <p className="text-xs text-gray-500">
+                    {formatTimestamp(activity.timestamp)} • {activity.user}
+                  </p>
                 </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Button variant="outline" size="sm">
-                View All Activity
-              </Button>
-            </div>
+              </div>
+            ))}
+
+            <Button variant="outline" size="sm">
+              View All Activity
+            </Button>
           </CardContent>
         </Card>
 
         {/* Alerts */}
-        <Card>
+        <Card className="rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <AlertTriangle className="h-5 w-5" />
-              Alerts & Notifications
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Alerts
             </CardTitle>
-            <CardDescription className="text-sm">
-              Important items requiring attention
-            </CardDescription>
+            <CardDescription>Items needing attention</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3 sm:space-y-4">
-              {alerts.map((alert) => (
-                <div key={alert.id} className="border-l-4 border-l-yellow-400 pl-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {alert.title}
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {alert.description}
-                      </p>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className="mt-2 p-0 h-auto text-xs">
-                    {alert.action}
-                  </Button>
-                </div>
-              ))}
-            </div>
+
+          <CardContent className="space-y-4">
+            {alerts.map((alert) => (
+              <div key={alert.id} className="border-l-4 border-yellow-400 pl-4">
+                <p className="text-sm font-semibold text-gray-900">{alert.title}</p>
+                <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
+                <Button variant="ghost" size="sm" className="mt-2 text-xs p-0 h-auto">
+                  {alert.action}
+                </Button>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="rounded-2xl shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg">Quick Actions</CardTitle>
-          <CardDescription className="text-sm">
-            Common tasks and shortcuts
-          </CardDescription>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Common shortcuts</CardDescription>
         </CardHeader>
+
         <CardContent>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Button className="h-auto p-3 sm:p-4 flex flex-col items-center gap-2 text-sm">
-              <Car className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="hidden sm:inline">Create New Lot</span>
-              <span className="sm:hidden">New Lot</span>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Button className="flex flex-col gap-2 h-auto py-5">
+              <Car className="h-6 w-6" />
+              New Lot
             </Button>
-            <Button variant="outline" className="h-auto p-3 sm:p-4 flex flex-col items-center gap-2 text-sm">
-              <Gavel className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="hidden sm:inline">Start Auction</span>
-              <span className="sm:hidden">Auction</span>
+
+            <Button variant="outline" className="flex flex-col gap-2 h-auto py-5">
+              <Gavel className="h-6 w-6" />
+              Auction
             </Button>
-            <Button variant="outline" className="h-auto p-3 sm:p-4 flex flex-col items-center gap-2 text-sm">
-              <Users className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="hidden sm:inline">Manage Users</span>
-              <span className="sm:hidden">Users</span>
+
+            <Button variant="outline" className="flex flex-col gap-2 h-auto py-5">
+              <Users className="h-6 w-6" />
+              Users
             </Button>
-            <Button variant="outline" className="h-auto p-3 sm:p-4 flex flex-col items-center gap-2 text-sm">
-              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="hidden sm:inline">View Reports</span>
-              <span className="sm:hidden">Reports</span>
+
+            <Button variant="outline" className="flex flex-col gap-2 h-auto py-5">
+              <TrendingUp className="h-6 w-6" />
+              Reports
             </Button>
           </div>
         </CardContent>
       </Card>
+
     </div>
   );
 }
